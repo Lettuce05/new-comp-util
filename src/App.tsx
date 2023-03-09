@@ -1,15 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import LL from './components/LL/LL'
+import First from './components/First/First'
+import NavLayout from './components/NavLayout/NavLayout'
+import {AppStore} from './state'
+import {pages} from './types'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <h1 className="text-3xl font-bold underline">
-      Hello world!
-    </h1>
-  )
+export function App() {
+ const page = AppStore((state) => state.page);
+ 
+ if (page === pages.FIRST) {
+    return (
+      <NavLayout>
+        <First />
+      </NavLayout>
+    )
+  } else if(page === pages.LL) {
+    return (
+      <NavLayout>
+        <LL />
+      </NavLayout>
+    )
+  } else {
+    return (
+      <NavLayout />
+    )
+  }
 }
-
-export default App
