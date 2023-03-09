@@ -13,7 +13,7 @@ export default function Select() {
                 {page}
             </div>
             <div className={`h-40 w-64 bg-zinc-200 overflow-y-auto absolute ${open ? '': 'hidden'}`}>
-                {Object.values(pages).map((page) => <SelectItem value={page} />)}
+                {Object.values(pages).map((page) => <SelectItem key={page} value={page} />)}
             </div>
         </div>
     )

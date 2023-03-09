@@ -4,7 +4,7 @@ import NavLayout from './components/NavLayout/NavLayout'
 import {AppStore} from './state'
 import {pages} from './types'
 
-export function App() {
+export default function App() {
  const page = AppStore((state) => state.page);
  
  if (page === pages.FIRST) {

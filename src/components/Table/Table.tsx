@@ -26,7 +26,7 @@ type TableRowParams = {
 function TableRow({row, isHeader = false}: TableRowParams){
   return (
     <tr>
-      {row.map((data) => isHeader ? <TableHeader header={data} /> : <TableData data={data}/>)}
+      {row.map((data, index) => isHeader ? <TableHeader key={index} header={data} /> : <TableData key={index} data={data}/>)}
     </tr>
   )
 }
@@ -45,7 +45,7 @@ export default function Table({headers, rows}: TableParams) {
         <TableRow row={headers} isHeader={true}/>
       </thead>
       <tbody>
-        {rows.map(row => <TableRow row={row} />)}
+        {rows.map((row, index) => <TableRow key={index} row={row} />)}
       </tbody>
     </table>
   )

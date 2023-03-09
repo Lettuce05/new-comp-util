@@ -13,7 +13,7 @@ export default function GrammarInput({input, handleInput, handleRemove}: Grammar
   return (
     <div className='flex'>
       <input className={`w-40 ${lhError ? 'border-2 border-red-500' : ''}`} name='LH' type='text' value={input.LH} onInput={(e)=>handleInput(input.id, e)} />
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={10} stroke="currentColor" className="w-6 h-6">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
       </svg>
       <input className={`w-40 ${rhError ? 'border-2 border-red-500' : ''}`} name='RH' type='text' value={input.RH} onInput={(e)=>handleInput(input.id, e)} />
