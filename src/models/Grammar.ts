@@ -1,4 +1,5 @@
 import { GRAMMAR_INPUT } from "../types";
+import { getProduction, Production } from "./Production";
 
 export default class Grammar {
   static TERMINAL_PATTERN = /^".+"$/
@@ -99,24 +100,23 @@ export default class Grammar {
     return rhs.trim().split(' ').filter(term => term)
   }
 
-  calculateFirst(lhs: string[], rhs: string, firstSet: Set<string>): Set<string> {
-    let terms = Grammar.getTerms(rhs);
-    for (const term of terms){
-      if (Grammar.isTerminal(term.trim()) || term.trim() === Grammar.EPSILON){
-        return firstSet.add(term);
-      } else if (Grammar.isNonTerminal(term.trim()) && lhs.indexOf(term.trim()) === -1) {
-        let rhss: Set<string> = this.productions.get(term.trim()) || new Set();
+  calculateFirst(lhs: string[], rhs: Production, firstSet: Set<string>): Set<string> {
+    for (const term of rhs){
+      if (term.isTerminal || term.isEpsilon){
+        return firstSet.add(term.lexeme);
+      } else if (term.isNonTerminal && !lhs.includes(term.lexeme)) {
+        let rhss: Production[] = this.productions.get(term.lexeme) || [];
         let subFirst: Set<string> = new Set();
         for (const subRhs of rhss){
-          subFirst = new Set([...subFirst, ...this.calculateFirst([...lhs, term.trim()], subRhs, subFirst)]);
+          subFirst = new Set([...subFirst, ...this.calculateFirst([...lhs, term.lexeme], subRhs, subFirst)]);
         }
-        if (!subFirst.has(Grammar.EPSILON) || terms.lastIndexOf(term) === terms.length-1){
+        if (!subFirst.has(Grammar.EPSILON) || rhs[rhs.length-1].lexeme === term.lexeme){
           firstSet = new Set([...subFirst, ...firstSet]) 
           return firstSet; 
         }
         subFirst.delete(Grammar.EPSILON);
         firstSet = new Set([...subFirst, ...firstSet])
-      } else if (lhs.indexOf(term.trim()) > -1 && !this.firsts.get(term.trim())?.has(Grammar.EPSILON)){
+      } else if (lhs.includes(term.lexeme) && !this.firsts.get(term.lexeme)?.has(Grammar.EPSILON)){
         return firstSet;
       }
     }
@@ -152,15 +152,29 @@ export default class Grammar {
     return changed;
   }
 
+  getProductions(productions: Map<string, Set<string>>) {
+    let newProductions: Map<string, Production[]> = new Map();
+    // for every rhs of every production create a new Production object
+    for (const [lhs, rhss] of productions){
+      let newRhss: Production[] = []
+      for (const rhs of rhss){
+        newRhss.push(getProduction(Grammar.getTerms(rhs)))
+      }
+      newProductions.set(lhs, newRhss)
+    }
+
+    return newProductions;
+  }
+
   terminals: Set<string>
   nonterminals: Set<string>
-  productions: Map<string, Set<string>>
+  productions: Map<string, Production[]>
   firsts: Map<string, Set<string>>
 
   constructor(terminals: Set<string>, nonterminals: Set<string>, productions: Map<string, Set<string>>){
     this.terminals = terminals;
     this.nonterminals = nonterminals;
-    this.productions = productions;
+    this.productions = this.getProductions(productions);
     let initialfirsts = new Map<string, Set<string>>;
     nonterminals.forEach(nt => {
       initialfirsts.set(nt, new Set())
