@@ -4,17 +4,19 @@ import Table from '../Table/Table';
 
 export default function First() {
   const grammar = AppStore(state => state.grammar);
-  const tableHeaders = ['Non-Terminal', 'FIRST(X)']
+  const tableHeaders = ['Non-Terminal', 'FIRST(X)', 'FOLLOW(X)']
   let tableData = null;
+
+  function printSet(set: Set<string>){
+    return `{${Array.from(set).sort().join(' , ')}}`
+  }
   if (grammar !== null){
-    console.log(grammar)
-    // get first set
-    tableData = Array.from(grammar.firsts).map(set => {
-      return [set[0], `{${Array.from(set[1]).sort().join(' , ')}}`]
-    })
-    console.log(tableData);
-    // get follow set
-    // get predict set
+    let tempData = []
+    // format grammar data into tableData format (nonterminal,FIRST,FOLLOW)
+    for (const nonterminal of grammar.nonterminals){
+      tempData.push([nonterminal, printSet(grammar.firsts.get(nonterminal) ?? new Set()), printSet(grammar.follows.get(nonterminal) ?? new Set())])
+    }
+    tableData = tempData;
   }
   return (
     <div className="flex flex-1 max-h-[calc(100vh-56px)]">

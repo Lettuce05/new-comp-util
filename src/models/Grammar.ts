@@ -200,12 +200,13 @@ export default class Grammar {
             for (let j = i+1; j < RH.length; j++){
               if (this.isNullable(RH, i+1, j) && RH[i].isNonTerminal){
                 if (RH[j].isNonTerminal){
-                  result = this.addSet(this.follows.get(RH[i].lexeme) ?? new Set(), this.firsts.get(RH[j].lexeme) ?? new Set())
+                  let firstWOEpsilon = new Set([...(this.firsts.get(RH[j].lexeme) || new Set())]);
+                  firstWOEpsilon.delete(Grammar.EPSILON);
+                  result = this.addSet(this.follows.get(RH[i].lexeme) ?? new Set(), firstWOEpsilon)
                 } else {
                   result = this.addSet(this.follows.get(RH[i].lexeme) ?? new Set(), new Set([RH[j].lexeme]))
                 }
                 // delete epsilon if it was added, we do not epsilon in follow sets
-                // (this.follows.get(RH[i].lexeme))?.delete(Grammar.EPSILON)
                 change = change || result
               }
             }
