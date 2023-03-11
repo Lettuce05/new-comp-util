@@ -1,5 +1,5 @@
 import { GRAMMAR_INPUT } from "../types";
-import { getProduction, Production } from "./Production";
+import { getProduction, indexOfProductionTerm, Production } from "./Production";
 
 export default class Grammar {
   static TERMINAL_PATTERN = /^".+"$/
@@ -100,45 +100,119 @@ export default class Grammar {
     return rhs.trim().split(' ').filter(term => term)
   }
 
-  calculateFirst(lhs: string[], rhs: Production, firstSet: Set<string>): Set<string> {
-    for (const term of rhs){
-      if (term.isTerminal || term.isEpsilon){
-        return firstSet.add(term.lexeme);
-      } else if (term.isNonTerminal && !lhs.includes(term.lexeme)) {
-        let rhss: Production[] = this.productions.get(term.lexeme) || [];
-        let subFirst: Set<string> = new Set();
-        for (const subRhs of rhss){
-          subFirst = new Set([...subFirst, ...this.calculateFirst([...lhs, term.lexeme], subRhs, subFirst)]);
-        }
-        if (!subFirst.has(Grammar.EPSILON) || rhs[rhs.length-1].lexeme === term.lexeme){
-          firstSet = new Set([...subFirst, ...firstSet]) 
-          return firstSet; 
-        }
-        subFirst.delete(Grammar.EPSILON);
-        firstSet = new Set([...subFirst, ...firstSet])
-      } else if (lhs.includes(term.lexeme) && !this.firsts.get(term.lexeme)?.has(Grammar.EPSILON)){
-        return firstSet;
-      }
-    }
-    return firstSet;
-  }
+  // calculateFirst(lhs: string[], rhs: Production, firstSet: Set<string>): Set<string> {
+  //   for (const term of rhs){
+  //     if (term.isTerminal || term.isEpsilon){
+  //       return firstSet.add(term.lexeme);
+  //     } else if (term.isNonTerminal && !lhs.includes(term.lexeme)) {
+  //       let rhss: Production[] = this.productions.get(term.lexeme) || [];
+  //       let subFirst: Set<string> = new Set();
+  //       for (const subRhs of rhss){
+  //         subFirst = new Set([...subFirst, ...this.calculateFirst([...lhs, term.lexeme], subRhs, subFirst)]);
+  //       }
+  //       if (!subFirst.has(Grammar.EPSILON) || rhs[rhs.length-1].lexeme === term.lexeme){
+  //         firstSet = new Set([...subFirst, ...firstSet]) 
+  //         return firstSet; 
+  //       }
+  //       subFirst.delete(Grammar.EPSILON);
+  //       firstSet = new Set([...subFirst, ...firstSet])
+  //     } else if (lhs.includes(term.lexeme) && !this.firsts.get(term.lexeme)?.has(Grammar.EPSILON)){
+  //       return firstSet;
+  //     }
+  //   }
+  //   return firstSet;
+  // }
 
-  getFirsts() {
-    let changed = false;
-    for (const [lh, rhss] of this.productions) {
-      let lhFirst: Set<string> = new Set();
-      for(const rhs of rhss){
-        let rhsFirst = this.calculateFirst([lh.trim()], rhs, new Set());
-        lhFirst = new Set([...lhFirst, ...rhsFirst]);
-        if (this.addSet(this.firsts.get(lh.trim()) ?? new Set(), lhFirst)){
-          changed = true;
+  // calculateFollow(){
+  //   let startSymbol: string = (Array.from(this.nonterminals))[0];
+
+  //   for (const nonterminal of this.nonterminals){
+  //     let follow: Set<string> = new Set()
+  //     // if nonterminal is start symbol add $ to FOLLOW set
+  //     if (nonterminal === startSymbol){
+  //       follow.add('$');
+  //     }
+
+  //     for (const [lh, rhss] of this.productions){
+  //       for (const rhs of rhss){
+  //         let termExists = (rhs.filter((term) => term.lexeme === nonterminal)).length > 0;
+  //         // check if production A -> ...B... exists
+  //         if (termExists && (rhs[rhs.length-1].lexeme !== nonterminal)) {
+  //           let termIndex = indexOfProductionTerm(nonterminal, rhs) + 1;
+  //           do {
+  //             if (rhs[termIndex].isTerminal){
+  //               follow.add(rhs[termIndex].lexeme)
+  //             }
+  //           } 
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
+  // getFirsts() {
+  //   let changed = false;
+  //   for (const [lh, rhss] of this.productions) {
+  //     let lhFirst: Set<string> = new Set();
+  //     for(const rhs of rhss){
+  //       let rhsFirst = this.calculateFirst([lh.trim()], rhs, new Set());
+  //       lhFirst = new Set([...lhFirst, ...rhsFirst]);
+  //       if (this.addSet(this.firsts.get(lh.trim()) ?? new Set(), lhFirst)){
+  //         changed = true;
+  //       }
+  //     }
+  //     this.firsts.set(lh, lhFirst);
+  //   }
+  //   if (changed){
+  //     this.getFirsts()
+  //   }
+  // }
+
+  FIRSTandFOLLOW(){
+    let change, result;
+    do {
+      change = false;
+      for (const [LH, RHS] of this.productions){
+        for (const RH of RHS) {
+          if(this.isNullable(RH, 0, RH.length) && !this.nullable.get(LH)){
+            this.nullable.set(LH, true);
+            change = true;
+          }
+          for (let i = 0; i < RH.length; i++){
+            if(this.isNullable(RH, 0, i)){
+              if (RH[i].isNonTerminal){
+                result = this.addSet(this.firsts.get(LH) ?? new Set(), this.firsts.get(RH[i].lexeme) ?? new Set())
+              } else {
+                result = this.addSet(this.firsts.get(LH) ?? new Set(), new Set([RH[i].lexeme]))
+              }
+              change = change || result;
+            }
+
+            if(
+              this.isNullable(RH, i+1, RH.length) && 
+              RH[i].isNonTerminal && 
+              (LH !== RH[i].lexeme)
+            ) {
+              result = this.addSet(this.follows.get(RH[i].lexeme) ?? new Set(), this.follows.get(LH) ?? new Set())
+              change = change || result
+            }
+
+            for (let j = i+1; j < RH.length; j++){
+              if (this.isNullable(RH, i+1, j) && RH[i].isNonTerminal){
+                if (RH[j].isNonTerminal){
+                  result = this.addSet(this.follows.get(RH[i].lexeme) ?? new Set(), this.firsts.get(RH[j].lexeme) ?? new Set())
+                } else {
+                  result = this.addSet(this.follows.get(RH[i].lexeme) ?? new Set(), new Set([RH[j].lexeme]))
+                }
+                // delete epsilon if it was added, we do not epsilon in follow sets
+                // (this.follows.get(RH[i].lexeme))?.delete(Grammar.EPSILON)
+                change = change || result
+              }
+            }
+          }
         }
       }
-      this.firsts.set(lh, lhFirst);
-    }
-    if (changed){
-      this.getFirsts()
-    }
+    } while(change);
   }
 
   addSet(s1: Set<string>, s2: Set<string>) {
@@ -151,6 +225,18 @@ export default class Grammar {
     }
     return changed;
   }
+
+  isNullable(production: Production, from: number, to: number){
+    let isnullable = true;
+    for (let i = from; i < to; i++){
+        isnullable = isnullable && (
+          (production[i].isNonTerminal && (this.nullable.get(production[i].lexeme) ?? false))
+           || production[i].isEpsilon)
+    }
+    return isnullable;
+  }
+
+
 
   getProductions(productions: Map<string, Set<string>>) {
     let newProductions: Map<string, Production[]> = new Map();
@@ -166,20 +252,28 @@ export default class Grammar {
     return newProductions;
   }
 
+
   terminals: Set<string>
   nonterminals: Set<string>
   productions: Map<string, Production[]>
   firsts: Map<string, Set<string>>
+  follows: Map<string, Set<string>>
+  nullable: Map<string, boolean>
 
   constructor(terminals: Set<string>, nonterminals: Set<string>, productions: Map<string, Set<string>>){
     this.terminals = terminals;
     this.nonterminals = nonterminals;
     this.productions = this.getProductions(productions);
-    let initialfirsts = new Map<string, Set<string>>;
+    this.firsts = new Map();
+    this.nullable = new Map();
+    this.follows = new Map();
     nonterminals.forEach(nt => {
-      initialfirsts.set(nt, new Set())
+      this.firsts.set(nt, new Set())
+      this.follows.set(nt, new Set())
+      this.nullable.set(nt, false)
     });
-    this.firsts = initialfirsts;
+
+    this.FIRSTandFOLLOW()
   }
 }
 

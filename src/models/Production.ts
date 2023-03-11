@@ -18,6 +18,18 @@ export function getProduction(stringTerms: string[]){
     return terms;
 }
 
+export function indexOfProductionTerm(term: String, production: Production){
+    let index = -1;
+    for (let i = 0; i < production.length; i++){
+        if (production[i].lexeme === term){
+            index = i;
+        }
+    }
+
+    return index;
+}
+
+
 type TermType = {
     isNonTerminal?: boolean, 
     isTerminal?: boolean, 

@@ -7,8 +7,8 @@ export default function First() {
   const tableHeaders = ['Non-Terminal', 'FIRST(X)']
   let tableData = null;
   if (grammar !== null){
+    console.log(grammar)
     // get first set
-    grammar.getFirsts()
     tableData = Array.from(grammar.firsts).map(set => {
       return [set[0], `{${Array.from(set[1]).sort().join(' , ')}}`]
     })
