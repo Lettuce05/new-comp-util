@@ -4,7 +4,7 @@ type TableDataParams = {
 
 function TableData({data}: TableDataParams){
   return (
-    <td>{data}</td>
+    <td className="p-2 whitespace-nowrap">{data}</td>
   )
 }
 
@@ -14,7 +14,7 @@ type TableHeaderParams = {
 
 function TableHeader({header}: TableHeaderParams){
   return (
-    <th>{header}</th>
+    <th className="p-2 whitespace-nowrap">{header}</th>
   )
 }
 
@@ -40,13 +40,15 @@ type TableParams = {
 
 export default function Table({headers, rows}: TableParams) {
   return (
-    <table>
-      <thead>
-        <TableRow row={headers} isHeader={true}/>
-      </thead>
-      <tbody>
-        {rows.map((row, index) => <TableRow key={index} row={row} />)}
-      </tbody>
-    </table>
+    <div className="w-full overflow-auto">
+      <table>
+        <thead>
+          <TableRow row={headers} isHeader={true}/>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => <TableRow key={index} row={row} />)}
+        </tbody>
+      </table>
+    </div>
   )
 }

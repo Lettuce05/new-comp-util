@@ -19,11 +19,9 @@ export default function First() {
     tableData = tempData;
   }
   return (
-    <div className="flex flex-1 max-h-[calc(100vh-56px)]">
+    <div className="flex flex-1 max-h-[calc(100vh-56px)] overflow-hidden">
       <Grammar />
-      <div className='flex-1'>
-        {grammar && tableData ? <Table headers={tableHeaders} rows={tableData} /> : null}
-      </div>
+      {grammar && tableData ? <Table headers={tableHeaders} rows={tableData} /> : null}
     </div>
   )
 }

@@ -100,74 +100,6 @@ export default class Grammar {
     return rhs.trim().split(' ').filter(term => term)
   }
 
-  // calculateFirst(lhs: string[], rhs: Production, firstSet: Set<string>): Set<string> {
-  //   for (const term of rhs){
-  //     if (term.isTerminal || term.isEpsilon){
-  //       return firstSet.add(term.lexeme);
-  //     } else if (term.isNonTerminal && !lhs.includes(term.lexeme)) {
-  //       let rhss: Production[] = this.productions.get(term.lexeme) || [];
-  //       let subFirst: Set<string> = new Set();
-  //       for (const subRhs of rhss){
-  //         subFirst = new Set([...subFirst, ...this.calculateFirst([...lhs, term.lexeme], subRhs, subFirst)]);
-  //       }
-  //       if (!subFirst.has(Grammar.EPSILON) || rhs[rhs.length-1].lexeme === term.lexeme){
-  //         firstSet = new Set([...subFirst, ...firstSet]) 
-  //         return firstSet; 
-  //       }
-  //       subFirst.delete(Grammar.EPSILON);
-  //       firstSet = new Set([...subFirst, ...firstSet])
-  //     } else if (lhs.includes(term.lexeme) && !this.firsts.get(term.lexeme)?.has(Grammar.EPSILON)){
-  //       return firstSet;
-  //     }
-  //   }
-  //   return firstSet;
-  // }
-
-  // calculateFollow(){
-  //   let startSymbol: string = (Array.from(this.nonterminals))[0];
-
-  //   for (const nonterminal of this.nonterminals){
-  //     let follow: Set<string> = new Set()
-  //     // if nonterminal is start symbol add $ to FOLLOW set
-  //     if (nonterminal === startSymbol){
-  //       follow.add('$');
-  //     }
-
-  //     for (const [lh, rhss] of this.productions){
-  //       for (const rhs of rhss){
-  //         let termExists = (rhs.filter((term) => term.lexeme === nonterminal)).length > 0;
-  //         // check if production A -> ...B... exists
-  //         if (termExists && (rhs[rhs.length-1].lexeme !== nonterminal)) {
-  //           let termIndex = indexOfProductionTerm(nonterminal, rhs) + 1;
-  //           do {
-  //             if (rhs[termIndex].isTerminal){
-  //               follow.add(rhs[termIndex].lexeme)
-  //             }
-  //           } 
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
-  // getFirsts() {
-  //   let changed = false;
-  //   for (const [lh, rhss] of this.productions) {
-  //     let lhFirst: Set<string> = new Set();
-  //     for(const rhs of rhss){
-  //       let rhsFirst = this.calculateFirst([lh.trim()], rhs, new Set());
-  //       lhFirst = new Set([...lhFirst, ...rhsFirst]);
-  //       if (this.addSet(this.firsts.get(lh.trim()) ?? new Set(), lhFirst)){
-  //         changed = true;
-  //       }
-  //     }
-  //     this.firsts.set(lh, lhFirst);
-  //   }
-  //   if (changed){
-  //     this.getFirsts()
-  //   }
-  // }
-
   FIRSTandFOLLOW(){
     let change, result;
     do {
@@ -268,9 +200,13 @@ export default class Grammar {
     this.firsts = new Map();
     this.nullable = new Map();
     this.follows = new Map();
-    nonterminals.forEach(nt => {
+    Array.from(nonterminals).forEach((nt, index) => {
+      if (index === 0){
+        this.follows.set(nt, new Set(["$"]))
+      } else {
+        this.follows.set(nt, new Set())
+      }
       this.firsts.set(nt, new Set())
-      this.follows.set(nt, new Set())
       this.nullable.set(nt, false)
     });
 

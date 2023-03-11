@@ -58,7 +58,7 @@ export default function Grammar() {
   }
 
   return (
-    <div className='max-h-full overflow-y-auto px-2 w-96'>
+    <div className='max-h-full overflow-y-auto px-2 w-96 min-w-[384px]'>
       <div className='my-4'>
         <p><span className='font-bold'>Non-Terminal:</span> must match a [A-Z]+ pattern</p>
         <p><span className='font-bold'>Terminal:</span> must match a ".+" pattern</p>
